@@ -27,7 +27,7 @@ SECRET_KEY=os.environ.get('SECRET_KEY')
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 
@@ -42,8 +42,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # External Package
-    'rest_framework'
+    'rest_framework',
     # Internal Apps
+    'drfecommerce.product',
+    
+    
 
 ]
 
@@ -126,3 +129,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK={
     
 }
+    
