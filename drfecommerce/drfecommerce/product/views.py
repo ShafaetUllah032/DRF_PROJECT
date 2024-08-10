@@ -2,6 +2,14 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema
+
+from django.db import connection
+
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import SqliteConsoleLexer, SqlLexer
+from sqlparse import format
+
 from .models import Category, Brand,Product
 from .serializers import CategorySerializer,BrandSerializer,ProductSerializer
 
@@ -24,25 +32,38 @@ class BrandViewSet(viewsets.ViewSet):
     """
 
     queryset=Brand.objects.all()
+    print(connection.queries)
+
     @extend_schema(responses=BrandSerializer)
     def list(self,request):
         serializer=BrandSerializer(self.queryset, many=True)
         return Response(serializer.data)
          
 
-class ProductViewSet(viewsets.ModelViewSet):
+class ProductViewSet(viewsets.ViewSet):
     """
     A simple viewsets to viewing prodcuts
     """
-    queryset=Product.objects.all()
+    queryset=Product.objects.isactive()
     lookup_field="slug"
 
     def retrieve(self,request, slug=None):
         serializer=ProductSerializer(
-            self.queryset.filter(slug=slug),
+            self.queryset.filter(slug=slug).select_related("category","brand"),
               many=True
               )
-        return Response(serializer.data)
+        x=self.queryset.filter(slug=slug)
+        sqlformatted = format(str(x.query), reindent=True )
+        # print(highlight(sqlformatted, SqliteConsoleLexer(),TerminalFormatter()))
+        data= Response(serializer.data)
+
+        q=list(connection.queries)
+        print(q)
+        # for qq in q:
+        #     sqlformatted=format(str(qq["sql"]), reindent=True)
+        #     print(highlight(sqlformatted, SqlLexer() , TerminalFormatter()))
+
+        return data
 
     @extend_schema(responses=ProductSerializer)
     def list(self,request):
